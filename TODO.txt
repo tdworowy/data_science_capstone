@@ -1,0 +1,10 @@
+1. Working model 
+2. shiny app 
+3. 5 slides pich (r studio presentation)
+
+
+deep learning in R
+deep learning in python (use examples from internet)
+
+load model from python to R
+create prediction function (new shini app)

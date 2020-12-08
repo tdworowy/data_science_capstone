@@ -1,0 +1,3 @@
+https://towardsdatascience.com/exploring-the-next-word-predictor-5e22aeb85d8f
+
+https://towardsdatascience.com/next-word-prediction-with-nlp-and-deep-learning-48b9fe0a17bf
