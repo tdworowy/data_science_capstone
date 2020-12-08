@@ -1,0 +1,7 @@
+data
+output
+.Rproj.user
+.Rhistory
+.RData
+.idea
+word_prediction_model.hdf5
