@@ -26,7 +26,10 @@ word_freq <- function(corpus, control_list) {
 #generate corpus
 generate_corpus <- function(text,stop_words=""){
   Corpus <- VCorpus(VectorSource(paste0(text)))
+  corpus <- tm_map(corpus, toSpace, "(f|ht)tp(s?)://(.*)[.][a-z]+")
+  corpus <- tm_map(corpus, toSpace, "@[^\\s]+")
   Corpus <- tm_map(Corpus, removePunctuation)
+  Corpus <- tm_map(Corpus, removeNumbers)
   Corpus <- tm_map(Corpus, stripWhitespace)
   Corpus <- tm_map(Corpus, content_transformer(tolower))
   Corpus <- tm_map(Corpus, removeWords, stop_words)

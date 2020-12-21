@@ -1,0 +1,200 @@
+---
+title: 'Coursera - Data Science Capstone - Milestone Report'
+author: "Tomasz Dworowy"
+output: html_document
+---
+
+# Setup
+
+```{r, setup}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+```
+
+Load libraries.
+```{r, load_libraries}
+libraries <- c("stringr", "tm", "dplyr", "ggplot2", "RWeka")
+for (lib in libraries) {
+  if (!require(lib, character.only = TRUE)){
+    install.packages(lib)
+  }
+  library(lib, character.only=TRUE)
+}
+
+```
+
+Download data.
+```{r, dwonload_data}
+url <- "https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip"
+file <- "Coursera-SwiftKey.zip"
+if(!file.exists(file)) {
+  download.file(url, dest="Coursera-SwiftKey.zip", mode="wb") 
+  unzip ("Coursera-SwiftKey.zip", exdir = ".")
+}
+
+```
+
+# Load Data
+```{r, load_data}
+
+data_folder <- "final/en_US/"
+twitter <-readLines(paste(data_folder,"en_US.twitter.txt",sep = ""),warn=FALSE)
+blog <-readLines(paste(data_folder,"en_US.blogs.txt",sep = ""),warn=FALSE)
+news <-readLines(paste(data_folder,"en_US.news.txt",sep = ""),warn=FALSE)
+
+```
+
+Count lines read from files.
+Twitter file has `r length(twitter)` lines, blog file has `r length(blog)` lines and news file has `r length(news)`
+with gives `r length(twitter) + length(blog) + length(news)` lines in total.
+
+Take subset of data due performance problems.
+```{r, data_sub_set}
+sample_size <- 1500
+twitter <- sample(twitter, sample_size)
+blog <- sample(blog, sample_size)
+news <- sample(news, sample_size)
+
+all <-c(twitter,blog,news)
+
+```
+
+# Functions
+Generate corpus function.
+```{r, generate_corpus_function}
+toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
+
+generate_corpus <- function(text,stop_words=""){
+  Corpus <- VCorpus(VectorSource(paste0(text)))
+  corpus <- tm_map(Corpus, toSpace, "(f|ht)tp(s?)://(.*)[.][a-z]+")
+  corpus <- tm_map(Corpus, toSpace, "@[^\\s]+")
+  Corpus <- tm_map(Corpus, removePunctuation)
+  Corpus <- tm_map(Corpus, removeNumbers)
+  Corpus <- tm_map(Corpus, stripWhitespace)
+  Corpus <- tm_map(Corpus, content_transformer(tolower))
+  Corpus <- tm_map(Corpus, removeWords, stop_words)
+  Corpus
+
+}
+
+```
+
+Tokenizer functions.
+```{r, tokenizers}
+uniTokenizer <- function(x) NGramTokenizer(x, Weka_control(min=1, max=1))
+biTokenizer <- function(x) NGramTokenizer(x, Weka_control(min=2, max=2))
+triTokenizer <- function(x) NGramTokenizer(x, Weka_control(min=3, max=3))
+
+modelTokenizer <- function(x) NGramTokenizer(x, Weka_control(min=2, max=3))
+
+```
+
+function. that generate word frequency matrix from corpus. 
+```{r, word frequency}
+word_freq <- function(corpus, control_list) {
+  tdm <- as.matrix(TermDocumentMatrix(corpus, control=control_list))
+  FreqMat <- data.frame(ST = rownames(tdm), 
+                        Freq = rowSums(tdm), 
+                        row.names = NULL)
+  FreqMat[order(-FreqMat$Freq),]
+}
+```
+
+# Naive model.
+Simple and most naive word prediction model. It predict word based only on frequencies of 2 and 3 grams.
+
+```{r, model}
+create_model <- function(text, max_words=3){
+    print("Creating model")
+    corpus <- generate_corpus(text, stop_words = stopwords("en"))
+    one_grams <- word_freq(corpus, list(tokenize = uniTokenizer))
+    n_grams <- word_freq(corpus, list(tokenize = modelTokenizer))
+    
+    
+    model <- function(word){
+      
+      words_grep <- n_grams[grep((paste(word,"\\s", sep = "")), n_grams$ST),]
+      count <- max_words
+      words <- ""
+      if(nrow(words_grep) >0){
+        for(str in words_grep[1:max_words, "ST"]){
+            next_word <-str_extract(str, paste('(?<=',word,'\\s)\\w+',sep = ""))
+            words <- paste(words, next_word)
+            count <- count -1
+          }
+      }
+      if (count > 1){
+             for (i in 1:count) {
+               res <- sample_n(one_grams, 1, weight = one_grams$Freq)
+               words <- paste(words, res$ST)
+             }
+           }
+      
+      return(words)
+      }
+    model
+}
+
+```
+
+# Exploratory anilisis 
+
+Generate corpus.
+```{r, generate_corpus}
+all_corps <- generate_corpus(all, stop_words = stopwords("en"))
+
+```
+
+Top ten two-grams.
+```{r, two_grams}
+all_2_gram <- word_freq(all_corps, list(tokenize = biTokenizer))
+
+ggplot(all_2_gram[1:10,], aes(x= Freq,y=reorder(ST, Freq))) + 
+      geom_bar(fill="red",stat="identity") + 
+      ggtitle("Top 10 two grams") + 
+      xlab("Frequency") +
+      ylab("Two gram") +
+      theme_dark()
+
+```
+
+Top ten three-grams.
+```{r, three_grams}
+all_3_gram <- word_freq(all_corps, list(tokenize = triTokenizer))
+
+ggplot(all_3_gram[1:10,], aes(x= Freq,y=reorder(ST, Freq))) + 
+      geom_bar(fill="red",stat="identity") + 
+      ggtitle("Top 10 three grams") + 
+      xlab("Frequency") +
+      ylab("three gram") +
+      theme_dark()
+```
+
+Top ten words.
+```{r, words}
+all_1_gram <- word_freq(all_corps, list(tokenize = uniTokenizer))
+
+ggplot(all_1_gram[1:10,], aes(x= Freq,y=reorder(ST, Freq))) + 
+      geom_bar(fill="red",stat="identity") + 
+      ggtitle("Top 10 words") + 
+      xlab("Frequency") +
+      ylab("word") +
+      theme_dark()
+```
+
+# Model test
+Model should return three next word suggestions (duplicated words are possible). 
+
+```{r, test_model}
+model <- create_model(all)
+
+model("north")
+model("love")
+model("man")
+model("test")
+
+```
+
+# Conclusion
+
+Performance of simple naive model is really poor, to make it works better we can use more data but n-grams size 
+grows exponentially so it is not practical solution. Best solution seems to be deep-learning model although is still time consuming and needs a lot of data. 

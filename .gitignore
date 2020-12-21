@@ -1,7 +1,10 @@
 data
+final
 output
 .Rproj.user
 .Rhistory
 .RData
 .idea
 word_prediction_model.hdf5
+milestone_report_cache
+*.zip
