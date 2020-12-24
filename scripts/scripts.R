@@ -22,7 +22,7 @@ blog <-readLines(paste(data_folder,"en_US.blogs.txt",sep = ""))
 news <-readLines(paste(data_folder,"en_US.news.txt",sep = ""))
 
 
-sample_size = 1000
+sample_size = 1500
 twitter <- sample(twitter, sample_size)
 blog <- sample(blog, sample_size)
 news <- sample(news, sample_size)

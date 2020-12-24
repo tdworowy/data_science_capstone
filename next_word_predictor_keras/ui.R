@@ -6,7 +6,8 @@ shinyUI(fluidPage(
 
     sidebarLayout(
         sidebarPanel(
-            textInput("word","word"),
+            h3("Enter phraze:"),
+            textInput("phraze","phraze"),
        
             
         ),
