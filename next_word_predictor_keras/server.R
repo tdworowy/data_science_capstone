@@ -1,14 +1,14 @@
 library(shiny)
 library(reticulate)
 
-virtualenv_dir = Sys.getenv('word_predictor')
+virtualenv_dir = Sys.getenv('python3_env')
 python_path = Sys.getenv('PYTHON_PATH')
 
 PYTHON_DEPENDENCIES = c('keras')
 
 reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
 reticulate::virtualenv_install(virtualenv_dir, packages = PYTHON_DEPENDENCIES, ignore_installed=TRUE)
-reticulate::use_virtualenv(virtualenv_dir, required = T)
+reticulate::use_virtualenv(virtualenv_dir, required = T) #shinyapps deploy don't work 
 
 
 #install.packages("keras")
