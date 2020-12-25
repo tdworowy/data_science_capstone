@@ -8,7 +8,7 @@ from pandas import np
 
 
 def predict(model: Sequential, tokenizer: Tokenizer, word: str, seq_len: int = 4):
-    encoded_text = tokenizer.texts_to_sequences([word])[0]
+    encoded_text = r .texts_to_sequences([word])[0]
     pad_encoded = pad_sequences([encoded_text], maxlen=seq_len, truncating='pre')
     print(encoded_text, pad_encoded)
     pred = model.predict(pad_encoded)[0]

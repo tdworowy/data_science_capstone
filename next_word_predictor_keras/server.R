@@ -1,26 +1,13 @@
 library(shiny)
-library(reticulate)
-
-virtualenv_dir = Sys.getenv('python3_env')
-python_path = Sys.getenv('PYTHON_PATH')
-
-PYTHON_DEPENDENCIES = c('keras')
-
-reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
-reticulate::virtualenv_install(virtualenv_dir, packages = PYTHON_DEPENDENCIES, ignore_installed=TRUE)
-reticulate::use_virtualenv(virtualenv_dir, required = T) #shinyapps deploy don't work 
 
 
-#install.packages("keras")
-#require(tensorflow)
-#install_tensorflow()
-#require(keras)
-keras <- import("keras")
+#PYTHON_DEPENDENCIES = c('TensorFlow','keras')
+
 
 predict_word <- function(model, tokenizer, seq_len=4, input_text){
   pred_word <- ''
-  encoded_text <- keras$texts_to_sequences(tokenizer, input_text)
-  pad_encoded = keras$pad_sequences(encoded_text, maxlen=seq_len, truncating='pre')
+  encoded_text <- texts_to_sequences(tokenizer, input_text)
+  pad_encoded =  pad_sequences(encoded_text, maxlen=seq_len, truncating='pre')
   pred <- predict(model, pad_encoded)
   if(input_text != '') {
     for(i in 1:3){
@@ -38,8 +25,28 @@ predict_word <- function(model, tokenizer, seq_len=4, input_text){
 
 
 shinyServer(function(input, output) {
-    model <- keras$load_model_hdf5('word_prediction_model.hdf5')
-    tokenizer <- keras$load_text_tokenizer('tokenizer.pickle')
+  
+    reticulate::virtualenv_create('myEnv', python = 'python3')
+ #   reticulate::virtualenv_install('myEnv', packages = PYTHON_DEPENDENCIES, ignore_installed=TRUE)
+    reticulate::use_virtualenv('myEnv', required = T) 
+
+   # install.packages("devtools", dependencies = TRUE)
+  #  devtools::install_github("rstudio/keras") 
+    curent_wd <- getwd()
+    print(curent_wd)
+    dir.create('keras')
+    install.packages('keras', lib=paste(curent_wd,"/keras",sep = ''))
+   
+    library(keras,lib=paste(curent_wd,"/keras",sep = ''))
+    install_keras()
+    
+   # keras <- import("keras")
+  #  keras_preprocesing <- ("keras_preprocessing")
+    
+    #reticulate::source_python('load_tokenizer.py')
+    
+    model <- load_model_hdf5('word_prediction_model.hdf5')
+    tokenizer <- load_text_tokenizer('tokenizer.pickle')
     new_word <-reactive({
         next_word <- predict_word(model=model, tokenizer=tokenizer, input_text=input$phraze)
         print(next_word)
