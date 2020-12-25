@@ -1,9 +1,5 @@
 library(shiny)
 
-
-#PYTHON_DEPENDENCIES = c('TensorFlow','keras')
-
-
 predict_word <- function(model, tokenizer, seq_len=4, input_text){
   pred_word <- ''
   encoded_text <- texts_to_sequences(tokenizer, input_text)
@@ -26,24 +22,20 @@ predict_word <- function(model, tokenizer, seq_len=4, input_text){
 
 shinyServer(function(input, output) {
   
-    reticulate::virtualenv_create('myEnv', python = 'python3')
- #   reticulate::virtualenv_install('myEnv', packages = PYTHON_DEPENDENCIES, ignore_installed=TRUE)
-    reticulate::use_virtualenv('myEnv', required = T) 
+    virtualenv_dir = Sys.getenv('VIRTUALENV_NAME')
+    python_path = Sys.getenv('PYTHON_PATH')
+  
+    reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
+    reticulate::use_virtualenv(virtualenv_dir, required = T)
 
-   # install.packages("devtools", dependencies = TRUE)
-  #  devtools::install_github("rstudio/keras") 
-    curent_wd <- getwd()
+    curent_wd <- getwd() #FUCK THIS SHIT 
     print(curent_wd)
     dir.create('keras')
     install.packages('keras', lib=paste(curent_wd,"/keras",sep = ''))
    
     library(keras,lib=paste(curent_wd,"/keras",sep = ''))
     install_keras()
-    
-   # keras <- import("keras")
-  #  keras_preprocesing <- ("keras_preprocessing")
-    
-    #reticulate::source_python('load_tokenizer.py')
+
     
     model <- load_model_hdf5('word_prediction_model.hdf5')
     tokenizer <- load_text_tokenizer('tokenizer.pickle')
