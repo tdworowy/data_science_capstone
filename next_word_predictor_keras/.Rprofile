@@ -2,7 +2,7 @@ options(repos=structure(c(CRAN="https://cloud.r-project.org/")))
 
 VIRTUALENV_NAME = 'myEnv'
 
-
+#TODO use conda insted of virtualenv
 if (Sys.info()[['user']] == 'shiny'){
   
   Sys.setenv(PYTHON_PATH = 'python3')

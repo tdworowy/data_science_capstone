@@ -1,5 +1,26 @@
 library(shiny)
 
+
+
+virtualenv_dir = Sys.getenv('VIRTUALENV_NAME')
+python_path = Sys.getenv('PYTHON_PATH')
+
+reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
+reticulate::use_virtualenv(virtualenv = virtualenv_dir, required = T)
+reticulate::install_miniconda()
+
+curent_wd <- getwd()
+if (!dir.exists('keras')){
+  dir.create('keras')
+  install.packages('keras', lib=paste(curent_wd,"/keras",sep = ''))
+}
+
+
+library(keras,lib=paste(curent_wd,"/keras",sep = ''))
+install_keras(method='conda')
+#TODO use conda insted of virtualenv
+
+
 predict_word <- function(model, tokenizer, seq_len=4, input_text){
   pred_word <- ''
   encoded_text <- texts_to_sequences(tokenizer, input_text)
@@ -22,22 +43,7 @@ predict_word <- function(model, tokenizer, seq_len=4, input_text){
 
 shinyServer(function(input, output) {
   
-    virtualenv_dir = Sys.getenv('VIRTUALENV_NAME')
-    python_path = Sys.getenv('PYTHON_PATH')
   
-    reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
-    reticulate::use_virtualenv(virtualenv = virtualenv_dir, required = T)
-
-
-    if (!dir.exists('keras')){
-      dir.create('keras')
-      install.packages('keras', lib=paste(curent_wd,"/keras",sep = ''))
-    }
-
-   
-    library(keras,lib=paste(curent_wd,"/keras",sep = ''))
-    install_keras()
-
     
     model <- load_model_hdf5('word_prediction_model.hdf5')
     tokenizer <- load_text_tokenizer('tokenizer.pickle')
