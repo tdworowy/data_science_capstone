@@ -26,12 +26,14 @@ shinyServer(function(input, output) {
     python_path = Sys.getenv('PYTHON_PATH')
   
     reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
-    reticulate::use_virtualenv(virtualenv_dir, required = T)
+    reticulate::use_virtualenv(virtualenv = virtualenv_dir, required = T)
 
-    curent_wd <- getwd() #FUCK THIS SHIT 
-    print(curent_wd)
-    dir.create('keras')
-    install.packages('keras', lib=paste(curent_wd,"/keras",sep = ''))
+
+    if (!dir.exists('keras')){
+      dir.create('keras')
+      install.packages('keras', lib=paste(curent_wd,"/keras",sep = ''))
+    }
+
    
     library(keras,lib=paste(curent_wd,"/keras",sep = ''))
     install_keras()
