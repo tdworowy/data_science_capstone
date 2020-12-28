@@ -7,7 +7,6 @@ shinyUI(fluidPage(
     sidebarLayout(
         sidebarPanel(
             textInput("word","word"),
-       
             
         ),
 

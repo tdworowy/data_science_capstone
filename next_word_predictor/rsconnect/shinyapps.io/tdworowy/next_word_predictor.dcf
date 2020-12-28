@@ -1,0 +1,12 @@
+name: next_word_predictor
+title: next_word_predictor
+username:
+account: tdworowy
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3432124
+bundleId: 4034799
+url: https://tdworowy.shinyapps.io/next_word_predictor/
+when: 1609147661.94385
+asMultiple: FALSE
+asStatic: FALSE
