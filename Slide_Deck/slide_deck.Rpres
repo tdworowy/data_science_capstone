@@ -1,0 +1,83 @@
+Data Science Capstone: Slide Deck 
+
+========================================================
+author: Tomasz Dworowy
+date:  29/12/2020
+autosize: true
+
+Next Word predictor.
+Simple application with generate three next word proposals for given phrase. 
+
+Algorithm
+========================================================
+Application use simple algorithm based on words frequencies.
+<br>Steps:
+<ol>
+<li> Generate corpus and clear data.
+<li> Generate three, two and one grams from corpus.
+<li> Create data frame with three, two and one grams frequencies.
+<li> If new phrase match one of three or tow gram, return next word from that gram (start from most frequent) 
+<li> If not rerun random word, weighted by frequency, from one gram 
+</ol>
+Algorithm requires lot of memory and it performance is not to good. Better solution will be use deep learning i even  created kares prof of concept but could not deploy it to shinyapps.     
+
+R implementation of algorithm:   
+========================================================
+
+```{r}
+create_model <- function(text, max_words=3){
+    print("Creating model")
+    corpus <- generate_corpus(text, stop_words = stopwords("en"))
+    one_grams <- word_freq(corpus, list(tokenize = uniTokenizer))
+    n_grams <- word_freq(corpus, list(tokenize = modelTokenizer))
+    
+    
+    model <- function(word){
+      
+      words_grep <- n_grams[grep((paste(word,"\\s", sep = "")), n_grams$ST),]
+      count <- max_words
+      words <- ""
+      if(nrow(words_grep) >0){
+        for(str in words_grep[1:max_words, "ST"]){
+            next_word <-str_extract(str, paste('(?<=',word,'\\s)\\w+',sep = ""))
+            words <- paste(words, next_word)
+            count <- count -1
+          }
+      }
+      if (count > 1){
+             for (i in 1:count) {
+               res <- sample_n(one_grams, 1, weight = one_grams$Freq)
+               words <- paste(words, res$ST)
+             }
+           }
+      
+      return(words)
+      }
+    model
+}
+```
+
+Application page.
+========================================================
+
+![word predictor app](app.png)
+
+
+Deep learning approach.
+========================================================
+To create deep learning word predictor we can use Kares, popular deep learning python library with R interface available. Kares model could by composed with combination on three types of layers:
+- Embedding (input layer) - transform words into dense vector representation. 
+- LSTM (few hide layers) - Long short-term memory, recurrent layer with will 'learn' patterns from text.
+- Dense (output layer) - standard dense layer with the same amount of neurons as words in tokenizer. (might be preceded by few more dense layers.)
+
+Kares example:
+```{r. engine='python'}
+ model = Sequential()
+    neurons = 500
+    model.add(Embedding(vocabulary_size, seq_len, input_length=seq_len))
+    model.add(LSTM(neurons, return_sequences=True))
+    model.add(LSTM(neurons, recurrent_regularizer=l2(0.01), bias_regularizer=l2(0.01)))
+    model.add(Dense(neurons, activation='relu', bias_regularizer=l2(0.01)))
+    model.add(Dense(vocabulary_size, activation='softmax'))
+
+```

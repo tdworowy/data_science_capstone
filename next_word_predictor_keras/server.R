@@ -7,7 +7,9 @@ python_path = Sys.getenv('PYTHON_PATH')
 
 reticulate::virtualenv_create(envname = virtualenv_dir, python = python_path)
 reticulate::use_virtualenv(virtualenv = virtualenv_dir, required = T)
+reticulate::virtualenv_install(virtualenv_dir, packages = c('h5py'), ignore_installed=TRUE)
 reticulate::install_miniconda()
+
 
 curent_wd <- getwd()
 if (!dir.exists('keras')){
@@ -17,7 +19,9 @@ if (!dir.exists('keras')){
 
 
 library(keras,lib=paste(curent_wd,"/keras",sep = ''))
-install_keras(method='conda')
+install_tensorflow() #don't work
+
+#install_keras(method='conda')
 #TODO use conda insted of virtualenv
 
 
@@ -43,8 +47,6 @@ predict_word <- function(model, tokenizer, seq_len=4, input_text){
 
 shinyServer(function(input, output) {
   
-  
-    
     model <- load_model_hdf5('word_prediction_model.hdf5')
     tokenizer <- load_text_tokenizer('tokenizer.pickle')
     new_word <-reactive({
